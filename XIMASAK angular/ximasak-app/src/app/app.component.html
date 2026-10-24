@@ -1,0 +1,7 @@
+<app-header *ngIf="!esRutaDashboard()"></app-header>
+
+<main [style.padding]="esRutaDashboard() ? '0' : '0 40px 40px 40px'">
+  <router-outlet></router-outlet>
+</main>
+
+<app-footer *ngIf="!esRutaDashboard()"></app-footer>

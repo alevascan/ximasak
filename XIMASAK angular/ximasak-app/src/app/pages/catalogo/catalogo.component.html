@@ -1,0 +1,208 @@
+<div class="breadcrumb">
+  <span class="nav-link text-link" routerLink="/">Inicio</span> > Catálogo de Productos
+</div>
+
+<!--MODO ADMIN-->
+<div
+  *ngIf="auth.esAdminActivo()"
+  style="background: var(--gris-fondo); padding: 15px; border-radius: 8px; margin-bottom: 20px; display:flex; align-items: center; justify-content: space-between;"
+>
+  <h3 style="margin: 0; color: var(--azul-ximasak);">Modo Administrador Activo</h3>
+  <div>
+    <button class="btn-principal btn-sm" style="width: auto; padding: 10px 20px; margin-right: 10px;" (click)="abrirModalAgregar()">
+      + Agregar Producto
+    </button>
+    <button class="btn-secundario btn-sm" style="width: auto; padding: 10px 20px;" (click)="abrirModalAdministrar()">
+      ⚙ Administrar
+    </button>
+  </div>
+</div>
+
+<div class="buscador">
+  <input
+    type="text"
+    placeholder="Buscar productos (cases, memorias, routers...)"
+    [ngModel]="textoBusqueda()"
+    (ngModelChange)="textoBusqueda.set($event)"
+  />
+</div>
+
+<div class="layout-catalogo">
+  <!--FILTRO-->
+  <aside class="sidebar-filtros">
+    <h4>Categorías</h4>
+    <div>
+      <label *ngFor="let cat of catalogo.categorias()">
+        <input
+          type="checkbox"
+          class="chk-categoria"
+          [checked]="categoriasSeleccionadas().has(cat)"
+          (change)="toggleCategoria(cat)"
+        />
+        {{ cat.charAt(0).toUpperCase() + cat.slice(1) }}
+      </label>
+    </div>
+    <h4 class="mt-20">Precio</h4>
+    <div class="filtro-precio">
+      <input
+        type="number"
+        placeholder="Mínimo"
+        min="0"
+        [ngModel]="precioMin()"
+        (ngModelChange)="precioMin.set($event)"
+      />
+      <input
+        type="number"
+        placeholder="Máximo"
+        min="0"
+        [ngModel]="precioMax()"
+        (ngModelChange)="precioMax.set($event)"
+      />
+    </div>
+  </aside>
+
+  <div class="contenido-productos">
+    <div class="cabecera-productos">
+      <h2>Todos los Productos</h2>
+      <select [ngModel]="ordenSeleccionado()" (ngModelChange)="ordenSeleccionado.set($event)">
+        <option value="relevancia">Ordenar por: Relevancia</option>
+        <option value="precioAsc">Precio: Menor a Mayor</option>
+        <option value="precioDesc">Precio: Mayor a Menor</option>
+        <option value="nombreAsc">Nombre: A - Z</option>
+      </select>
+    </div>
+
+    <div class="grid-productos">
+      <p *ngIf="productosFiltrados().length === 0" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 20px;">
+        No se encontraron productos con estos filtros.
+      </p>
+
+      <div class="card-producto" *ngFor="let producto of productosFiltrados()">
+        <img [src]="producto.foto" [alt]="producto.nombre" class="img-producto" />
+        <h4>{{ producto.nombre }}</h4>
+        <p class="precio">S/ {{ producto.precio.toFixed(2) }}</p>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Stock: {{ producto.stock }}</p>
+
+        <div *ngIf="auth.esAdminActivo()" style="display: flex; gap: 10px; margin-top: auto;">
+          <button class="btn-secundario btn-sm" (click)="editarStock(producto.nombre)">Editar Stock</button>
+          <button class="btn-secundario btn-sm" style="border-color: red; color: red;" (click)="eliminarProducto(producto.nombre)">
+            Eliminar
+          </button>
+        </div>
+
+        <button
+          *ngIf="!auth.esAdminActivo()"
+          class="btn-sm"
+          [class.btn-principal]="producto.stock > 0"
+          [class.btn-secundario]="producto.stock === 0"
+          style="margin-top: auto;"
+          [disabled]="producto.stock === 0"
+          (click)="irAReservaDesdeCatalogo(producto.nombre)"
+        >
+          {{ producto.stock > 0 ? 'Reservar Producto' : 'Agotado' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--AGREGAR PRODUCTO-->
+<div class="modal-overlay" [style.display]="modalAgregarAbierto() ? 'flex' : 'none'">
+  <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-header" style="background-color: var(--azul-claro);">
+      <h3>Nuevo Producto</h3>
+      <span class="close-modal" (click)="cerrarModalAgregar()">&times;</span>
+    </div>
+
+    <div class="modal-body" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
+      <div>
+        <label class="mb-10" style="font-weight: bold; color: var(--text-color);">Nombre <span style="color:red;">*</span></label>
+        <input type="text" class="input-full mb-10" placeholder="Ingrese Nombre del Producto" [(ngModel)]="nuevoNombre" name="nuevoNombre" />
+
+        <label class="mb-10 mt-10" style="font-weight: bold; color: var(--text-color);">Precio Unitario</label>
+        <input type="number" class="input-full mb-10" placeholder="0" style="max-width: 200px;" [(ngModel)]="nuevoPrecio" name="nuevoPrecio" />
+
+        <label class="mb-10 mt-10" for="fotoProducto" style="font-weight: bold; color: var(--text-color);">Imagen</label>
+        <div class="upload-box">
+          <input type="file" id="fotoProducto" #fotoInput accept="image/*" (change)="onSeleccionarFoto($event)" />
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+            Opcional: si no eliges ninguna imagen se usará el logo de XIMASAK por defecto (máx. 2MB).
+          </p>
+          <img *ngIf="nuevaFotoPreview" [src]="nuevaFotoPreview" alt="Vista previa de la imagen del producto" class="upload-preview" />
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; gap: 15px;">
+          <div style="flex: 1;">
+            <label class="mb-10" style="font-weight: bold; color: var(--text-color);">Marca</label>
+            <input type="text" class="input-full mb-10" placeholder="Escriba..." [(ngModel)]="nuevaMarca" name="nuevaMarca" />
+          </div>
+          <div style="flex: 1;">
+            <label class="mb-10" style="font-weight: bold; color: var(--text-color);">Categoría</label>
+            <input type="text" class="input-full mb-10" placeholder="Escriba..." [(ngModel)]="nuevaCategoria" name="nuevaCategoria" />
+          </div>
+        </div>
+
+        <label class="mb-10 mt-20" style="font-weight: bold; color: var(--text-color); display:block; margin-top: 20px;">Stock Inicial</label>
+        <input type="number" class="input-full mb-10" [(ngModel)]="nuevoStock" name="nuevoStock" />
+      </div>
+    </div>
+
+    <div class="modal-footer" style="padding: 15px 20px; text-align: right; border-top: 1px solid var(--gris-borde);">
+      <button class="btn-secundario" style="margin-right: 10px; width: auto; padding: 10px 20px;" (click)="cerrarModalAgregar()">Cancelar</button>
+      <button class="btn-principal" style="background-color: var(--azul-claro); width: auto; padding: 10px 20px;" (click)="guardarNuevoProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!--ADMINISTRAR PRODUCTOS-->
+<div class="modal-overlay" [style.display]="modalAdministrarAbierto() ? 'flex' : 'none'">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header" style="background-color: var(--azul-ximasak);">
+      <h3>Administrar Productos</h3>
+      <span class="close-modal" (click)="cerrarModalAdministrar()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <label class="mb-10">Buscar producto por nombre:</label>
+      <input
+        type="text"
+        class="input-full mb-10"
+        placeholder="Ingrese Nombre del Producto"
+        [ngModel]="busquedaAdmin()"
+        (ngModelChange)="busquedaAdmin.set($event)"
+      />
+
+      <div style="margin-top: 20px;">
+        <p *ngIf="!busquedaAdmin()" style="text-align: center; color: var(--text-muted); font-size: 14px;">
+          Escribe el nombre de un producto para gestionarlo.
+        </p>
+        <p *ngIf="busquedaAdmin() && resultadosBusquedaAdmin().length === 0" style="text-align: center; color: red;">
+          No se encontraron productos con ese nombre.
+        </p>
+
+        <div
+          *ngFor="let prod of resultadosBusquedaAdmin()"
+          style="border: 1px solid var(--gris-borde); padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;"
+        >
+          <div>
+            <strong>{{ prod.nombre }}</strong><br />
+            <span style="font-size: 12px; color: var(--text-muted);">
+              Stock: <strong style="color: var(--azul-claro); font-size:14px;">{{ prod.stock }}</strong> | S/ {{ prod.precio.toFixed(2) }}
+            </span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secundario btn-sm" style="width: auto; padding: 5px 10px;" (click)="editarStock(prod.nombre)">Editar</button>
+            <button
+              class="btn-secundario btn-sm"
+              style="width: auto; padding: 5px 10px; border-color: red; color: red;"
+              (click)="eliminarProducto(prod.nombre)"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

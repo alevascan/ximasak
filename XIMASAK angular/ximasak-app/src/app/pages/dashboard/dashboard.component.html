@@ -1,0 +1,822 @@
+<div class="pro-layout">
+  
+  <!-- SIDEBAR IZQUIERDO -->
+  <aside class="pro-sidebar">
+    <div class="pro-logo">
+      <div class="logo-icon">❖</div>
+      <span>XIMASAK</span>
+    </div>
+
+    <nav class="pro-menu">
+      <button [class.active]="moduloActivo === 'resultados'" (click)="cambiarModulo('resultados')">
+        <span class="icon">✓</span> Result (Ventas)
+      </button>
+        <button [class.active]="moduloActivo === 'pos'" (click)="cambiarModulo('pos')">
+          <span class="icon">🛒</span> Punto de Venta (POS)
+        </button>
+      <button [class.active]="moduloActivo === 'clientes'" (click)="cambiarModulo('clientes')">
+        <span class="icon">👥</span> Clientes
+      </button>
+      <button [class.active]="moduloActivo === 'productos'" (click)="cambiarModulo('productos')">
+        <span class="icon">📦</span> Productos
+      </button>
+      <button [class.active]="moduloActivo === 'tickets'" (click)="cambiarModulo('tickets')">
+        <span class="icon">🛠️</span> Tickets / Reservas
+      </button>
+      <!-- SOLO APARECE SI INICIA SESIÓN COMO ADMINISTRADOR -->
+      <button *ngIf="esAdmin()" [class.active]="moduloActivo === 'usuarios'" (click)="cambiarModulo('usuarios')">
+        <span class="icon">🔐</span> Trabajadores (Admin)
+      </button>
+    </nav>
+
+    <div class="pro-sidebar-footer">
+      <button class="btn-outline-side" (click)="irATienda()">Ir a la Tienda</button>
+      <button class="btn-logout-side" (click)="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </aside>
+
+  <!-- ÁREA DERECHA PRINCIPAL -->
+  <div class="pro-main">
+    
+    <!-- BARRA SUPERIOR BLANCA (SIN EMOJIS DE LUPA NI PREGUNTA, CON CAMPANA FUNCIONAL) -->
+    <header class="pro-header">
+      <div class="header-left">
+        <span class="hamburger">☰</span>
+      </div>
+      <div class="header-right">
+        
+        <!-- CAMPANA DE NOTIFICACIONES DE RESERVAS -->
+        <div class="notif-wrapper" (click)="toggleNotificaciones()">
+          <span class="bell-btn" title="Ver reservas registradas">🔔</span>
+          <span class="notif-badge">{{ reservas.length }}</span>
+
+          <!-- MENÚ DESPLEGABLE DE RESERVAS -->
+          <div class="notif-dropdown" *ngIf="mostrarNotificaciones" (click)="$event.stopPropagation()">
+            <div class="notif-header">
+              <strong>Reservas Registradas ({{ reservas.length }})</strong>
+            </div>
+            <ul class="notif-list" *ngIf="reservas.length > 0">
+              <li *ngFor="let r of reservas.slice(0, 5)" (click)="irAReservasDesdeNotif()">
+                <div class="notif-title">{{ r.nombre }} ({{ r.dni }})</div>
+                <div class="notif-sub">{{ r.tipo }} - {{ r.fecha }} {{ r.hora }}</div>
+              </li>
+            </ul>
+            <div class="notif-empty" *ngIf="reservas.length === 0">
+              No hay reservas registradas por ahora.
+            </div>
+            <div class="notif-footer" (click)="irAReservasDesdeNotif()">
+              Ver todas las reservas →
+            </div>
+          </div>
+        </div>
+
+        <div class="user-profile">
+          <div class="avatar">{{ nombreUsuario.charAt(0) | uppercase }}</div>
+          <span class="user-name">{{ nombreUsuario }} ({{ rolActual }})</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENIDO DINÁMICO -->
+    <div class="pro-content">
+
+      <!-- ================= 1. VISTA RESULT (100% REAL CON LA BD) ================= -->
+      <div *ngIf="moduloActivo === 'resultados'">
+        
+        <!-- 4 TARJETAS CON DATOS REALES (0 SI NO HAY VENTAS) -->
+        <div class="metrics-row">
+          
+          <!-- Card 1: Total Sales -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Total Sales (Ventas en periodo)</span>
+              <span class="info-i">ⓘ</span>
+            </div>
+            <div class="metric-value">S/ {{ calcularTotalIngresos() | number:'1.2-2' }}</div>
+            <div class="metric-chart-area text-ratios">
+              <div>Ventas registradas: <strong>{{ ventasFiltradas.length }}</strong></div>
+              <div>Total histórico: <strong>{{ ventas.length }} ventas</strong></div>
+            </div>
+            <div class="metric-footer">
+              Day Sales (Hoy): S/ {{ calcularVentasHoy() | number:'1.2-2' }}
+            </div>
+          </div>
+
+          <!-- Card 2: Clientes Registrados -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Clientes Registrados (BD)</span>
+              <span class="info-i">ⓘ</span>
+            </div>
+            <div class="metric-value">{{ clientes.length }}</div>
+            <div class="metric-chart-area">
+              <div class="real-stat-note">
+                Reservas activas: <strong>{{ reservas.length }}</strong>
+              </div>
+            </div>
+            <div class="metric-footer">
+              Registrados activos en BD: {{ clientes.length }}
+            </div>
+          </div>
+
+          <!-- Card 3: Productos en Inventario -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Productos en Inventario</span>
+              <span class="info-i">ⓘ</span>
+            </div>
+            <div class="metric-value">{{ productos.length }}</div>
+            <div class="metric-chart-area">
+              <div class="real-stat-note">
+                Trabajadores activos: <strong>{{ trabajadores.length }}</strong>
+              </div>
+            </div>
+            <div class="metric-footer">
+              Con stock crítico: {{ obtenerProductosStockBajo().length }} productos
+            </div>
+          </div>
+
+          <!-- Card 4: Estado Operativo -->
+          <div class="metric-card center-card">
+            <span class="op-title">Efectividad de Ventas</span>
+            <div class="op-value">{{ ventasFiltradas.length > 0 ? '100%' : '0%' }}</div>
+            <span class="op-sub" *ngIf="obtenerProductosStockBajo().length > 0">
+              ⚠️ {{ obtenerProductosStockBajo().length }} prod. con stock bajo
+            </span>
+            <span class="op-ok" *ngIf="obtenerProductosStockBajo().length === 0">
+              Inventario estable
+            </span>
+          </div>
+
+        </div>
+
+        <!-- PANEL INFERIOR CON FILTROS DE TIEMPO FUNCIONALES -->
+        <div class="big-chart-card">
+          <div class="tabs-bar">
+            <div class="tabs-left">
+              <span class="tab-item active">Sales (Ventas Reales)</span>
+            </div>
+            <div class="tabs-right">
+              <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'day'" (click)="aplicarFiltroPeriodo('day')">All day</button>
+              <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'week'" (click)="aplicarFiltroPeriodo('week')">All week</button>
+              <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'month'" (click)="aplicarFiltroPeriodo('month')">All month</button>
+              <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'year'" (click)="aplicarFiltroPeriodo('year')">All year</button>
+              <div class="date-inputs">
+                <input type="date" [(ngModel)]="fechaInicioFiltro" (change)="filtrarVentasPorRango()">
+                <span>~</span>
+                <input type="date" [(ngModel)]="fechaFinFiltro" (change)="filtrarVentasPorRango()">
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-and-ranking">
+            <!-- Izquierda: Gráfico de Ventas Reales -->
+            <div class="trend-column">
+              <h4>Store Sales Trend (Ventas en el periodo seleccionado)</h4>
+
+              <div *ngIf="ventasFiltradas.length === 0" class="empty-chart-box">
+                No se registraron ventas en este periodo (S/ 0.00).
+              </div>
+
+              <div class="bar-chart-container" *ngIf="ventasFiltradas.length > 0">
+                <div class="y-axis">
+                  <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+                </div>
+                <div class="bars-stage">
+                  <div class="bar-group" *ngFor="let t of [1, 2, 3, 4]">
+                    <div class="bars-pair">
+                      <div class="bar-dark" [style.height.%]="calcularAlturaTrimestre(t)"></div>
+                    </div>
+                    <span class="x-label">Trimestre {{ t }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Derecha: Ranking / Historial de Ventas Reales -->
+            <div class="ranking-column">
+              <h4>Ventas Realizadas en este Periodo ({{ ventasFiltradas.length }})</h4>
+              <div *ngIf="ventasFiltradas.length === 0" class="empty-msg">
+                Sin ventas registradas. Cuando se realice una venta en la BD aparecerá aquí.
+              </div>
+              <ul class="ranking-list" *ngIf="ventasFiltradas.length > 0">
+                
+              <li
+                *ngFor="let v of ventasFiltradas.slice(0, 7); let i = index"
+                (click)="verDetalleVenta(v)"
+                [class.venta-seleccionada]="ventaSeleccionada && (ventaSeleccionada.idVenta || ventaSeleccionada.id) === (v.idVenta || v.id)"
+                title="Haz clic para ver el detalle de la venta">
+
+                <span class="rank-badge top3">{{ i + 1 }}</span>
+
+                <span class="rank-name">
+                  Venta #{{ v.idVenta || v.id }}
+                  ({{ v.fecha || v.fechaVenta | date:'shortDate' }})
+                </span>
+
+                <span class="rank-total">
+                  S/ {{ (v.total || v.montoTotal || 0) | number:'1.2-2' }}
+                </span>
+              </li>
+
+              </ul>
+            </div>
+          </div>
+          
+              
+<!-- MODAL: DETALLE COMPLETO DE VENTA -->
+<div
+  class="venta-modal-overlay"
+  *ngIf="mostrarDetalleVenta"
+  (click)="cerrarDetalleVenta()">
+
+  <section
+    class="venta-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tituloDetalleVenta"
+    (click)="$event.stopPropagation()">
+
+    <header class="venta-modal-header">
+      <div>
+        <h2 id="tituloDetalleVenta">
+          Detalle de venta #{{ ventaSeleccionada?.idVenta || ventaSeleccionada?.id || '' }}
+        </h2>
+        <p>Información completa de la operación</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        (click)="cerrarDetalleVenta()"
+        aria-label="Cerrar ventana">
+        ✕
+      </button>
+    </header>
+
+    <div class="venta-modal-body">
+
+      <div *ngIf="cargandoDetalleVenta" class="modal-mensaje">
+        Cargando detalle de la venta...
+      </div>
+
+      <div *ngIf="errorDetalleVenta" class="modal-error">
+        {{ errorDetalleVenta }}
+      </div>
+
+      <ng-container *ngIf="ventaSeleccionada as v">
+
+        <div class="venta-info-grid">
+          <div class="venta-info-item">
+            <span>Fecha de venta</span>
+            <strong>
+              {{ v.fecha ? (v.fecha | date:'dd/MM/yyyy HH:mm') : 'No registrada' }}
+            </strong>
+          </div>
+
+          <div class="venta-info-item">
+            <span>Estado</span>
+            <strong>{{ v.estado || 'No especificado' }}</strong>
+          </div>
+
+          <div class="venta-info-item">
+            <span>Cliente</span>
+            <strong>{{ v.cliente?.nombre || 'No disponible' }}</strong>
+          </div>
+
+          <div class="venta-info-item">
+            <span>DNI / RUC</span>
+            <strong>{{ v.cliente?.dni || v.cliente?.ruc || 'No disponible' }}</strong>
+          </div>
+
+          <div class="venta-info-item">
+            <span>Vendedor</span>
+            <strong>{{ v.usuario?.nombre || 'No disponible' }}</strong>
+          </div>
+
+          <div class="venta-info-item">
+            <span>Medio de pago</span>
+            <strong>
+              {{ v.medioPago?.nombre || v.medioPago?.descripcion || 'No disponible' }}
+            </strong>
+          </div>
+        </div>
+
+        <h3 class="detalle-productos-titulo">Productos vendidos</h3>
+
+        <div class="tabla-detalle-wrapper">
+          <table class="tabla-detalle-venta">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let d of (v.detalles || [])">
+                <td>
+                  {{ d.producto?.nombre || 'Producto sin nombre' }}
+                </td>
+                <td>{{ d.cantidad }}</td>
+                <td>
+                  S/ {{ (d.precioUnitario || 0) | number:'1.2-2' }}
+                </td>
+                <td>
+                  S/ {{ (d.subtotal || 0) | number:'1.2-2' }}
+                </td>
+              </tr>
+
+              <tr *ngIf="!v.detalles || v.detalles.length === 0">
+                <td colspan="4" class="sin-productos">
+                  Esta venta no contiene detalles de productos.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="venta-totales">
+          <div>
+            <span>Subtotal</span>
+            <strong>S/ {{ (v.subtotal || 0) | number:'1.2-2' }}</strong>
+          </div>
+
+          <div>
+            <span>IGV</span>
+            <strong>S/ {{ (v.igv || 0) | number:'1.2-2' }}</strong>
+          </div>
+
+          <div class="venta-total-final">
+            <span>Total de venta</span>
+            <strong>S/ {{ (v.total || 0) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="comprobante-panel">
+          <h3>Comprobante de pago</h3>
+          <p>Selecciona el tipo de comprobante que deseas preparar.</p>
+
+          <div class="comprobante-opciones">
+            <button
+              type="button"
+              [class.comprobante-activo]="tipoComprobante === 'BOLETA'"
+              (click)="seleccionarTipoComprobante('BOLETA')">
+              Boleta de venta
+            </button>
+
+            <button
+              type="button"
+              [class.comprobante-activo]="tipoComprobante === 'FACTURA'"
+              (click)="seleccionarTipoComprobante('FACTURA')">
+              Factura
+            </button>
+          </div>
+
+          <p class="comprobante-nota">
+            Tipo seleccionado: <strong>{{ tipoComprobante }}</strong>
+          </p>
+
+          <p *ngIf="tipoComprobante === 'FACTURA' && !v.cliente?.ruc"
+             class="modal-aviso">
+            El cliente no tiene un RUC disponible. Debes registrar los datos
+            fiscales correspondientes antes de preparar la factura.
+          </p>
+
+          <!-- El botón de emisión se conectará al servicio de PDF -->
+                     <div class="comprobante-acciones">
+            <button
+              type="button"
+              class="btn-generar-comprobante"
+              [disabled]="generandoComprobante ||
+                (tipoComprobante === 'FACTURA' && !v.cliente?.ruc)"
+              (click)="generarComprobante()">
+
+              <span *ngIf="!generandoComprobante">
+                Descargar {{ tipoComprobante === 'BOLETA' ? 'boleta' : 'factura' }} PDF
+              </span>
+
+              <span *ngIf="generandoComprobante">
+                Generando PDF...
+              </span>
+            </button>
+          </div>
+
+          <p class="comprobante-nota">
+            El documento generado es de uso interno y no sustituye
+            un comprobante electrónico validado por SUNAT.
+          </p>
+        </div>
+
+      </ng-container>
+    </div>
+
+    <footer class="venta-modal-footer">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="cerrarDetalleVenta()">
+        Cerrar
+      </button>
+    </footer>
+
+  </section>
+</div>
+
+
+        </div>
+
+      </div>
+
+      
+      <!-- ================= 1.5 VISTA PUNTO DE VENTA (POS / CARRITO HU-04 y HU-05) ================= -->
+      <div *ngIf="moduloActivo === 'pos'" class="crud-card pos-section">
+        <div class="section-header-flex">
+          <div>
+            <h3>🛒 Terminal Punto de Venta (POS) - Mostrador</h3>
+            <p class="subtitle">Búsqueda de clientes por DNI/RUC (HU-04), armado de carrito y cobro con emisión de boleta (HU-05).</p>
+          </div>
+        </div>
+
+        <div class="pos-grid">
+          <!-- Columna Izquierda: Búsqueda Cliente y Catálogo de Productos -->
+          <div class="pos-catalog-column">
+            <!-- HU-04: Búsqueda de Cliente -->
+            <div class="pos-panel cliente-box">
+              <label><strong>👤 Cliente / Mostrador (HU-04):</strong></label>
+              <div class="pos-search-row">
+                <input type="text" class="form-control" [(ngModel)]="posBusquedaDni" (keyup.enter)="buscarClientePos()" placeholder="Ingresa DNI (8 dígitos) o RUC (11 dígitos)..." />
+                <button type="button" class="btn-pos-search" (click)="buscarClientePos()">Buscar / Validar</button>
+              </div>
+              <div *ngIf="posMensajeCliente" class="pos-alert" [class.pos-alert-success]="posClienteSeleccionado">
+                {{ posMensajeCliente }}
+              </div>
+            </div>
+
+            <!-- HU-05: Selección de Productos -->
+            <div class="pos-panel products-box">
+              <div class="pos-panel-header">
+                <label><strong>📦 Catálogo de Productos Disponibles:</strong></label>
+                <input type="text" class="search-box-sm" [(ngModel)]="posFiltroProducto" placeholder="Filtrar por nombre o marca..." />
+              </div>
+
+              <div class="pos-products-list">
+                <div *ngFor="let p of productosFiltradosPos" class="pos-product-item">
+                  <div class="p-info">
+                    <span class="p-name">{{ p.nombre }}</span>
+                    <span class="p-brand">{{ p.marca }} | Stock: {{ p.stock ?? p.stockActual ?? 10 }}</span>
+                  </div>
+                  <div class="p-price-action">
+                    <span class="p-price">S/ {{ obtenerPrecio(p) | number:'1.2-2' }}</span>
+                    <button type="button" class="btn-pos-add" (click)="agregarAlCarritoPos(p)">+ Agregar</button>
+                  </div>
+                </div>
+                <div *ngIf="productosFiltradosPos.length === 0" class="empty-msg">
+                  No se encontraron productos coincidentes en el inventario.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Carrito de Venta y Cobro -->
+          <div class="pos-cart-column">
+            <div class="pos-panel cart-box">
+              <h4>🧾 Resumen de Venta / Carrito</h4>
+
+              <div *ngIf="posClienteSeleccionado" class="client-badge">
+                <strong>Cliente:</strong> {{ posClienteSeleccionado.nombre }} | <strong>Doc:</strong> {{ posClienteSeleccionado.dni || posClienteSeleccionado.ruc || 'S/D' }}
+              </div>
+
+              <div class="cart-table-wrapper">
+                <table class="pos-cart-table">
+                  <thead>
+                    <tr>
+                      <th>Prod.</th>
+                      <th>Cant.</th>
+                      <th>P.Unit</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of posCarrito">
+                      <td class="cart-item-name">{{ item.producto.nombre }}</td>
+                      <td class="cart-item-qty">
+                        <button type="button" class="btn-qty" (click)="cambiarCantidadPos(item, -1)">-</button>
+                        <span>{{ item.cantidad }}</span>
+                        <button type="button" class="btn-qty" (click)="cambiarCantidadPos(item, 1)">+</button>
+                      </td>
+                      <td>S/ {{ item.precioUnitario | number:'1.2-2' }}</td>
+                      <td><strong>S/ {{ item.subtotal | number:'1.2-2' }}</strong></td>
+                      <td><button type="button" class="btn-remove" (click)="quitarDelCarritoPos(item)">✕</button></td>
+                    </tr>
+                    <tr *ngIf="posCarrito.length === 0">
+                      <td colspan="5" class="empty-cart-msg">El carrito está vacío. Agrega productos de la lista.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Totales -->
+              <div class="pos-totals-box">
+                <div class="tot-row"><span>Op. Gravada:</span><span>S/ {{ calcularSubtotalSinIgvPos() | number:'1.2-2' }}</span></div>
+                <div class="tot-row"><span>I.G.V. (18%):</span><span>S/ {{ calcularIgvPos() | number:'1.2-2' }}</span></div>
+                <div class="tot-row tot-highlight"><span>TOTAL A COBRAR:</span><span>S/ {{ calcularTotalPos() | number:'1.2-2' }}</span></div>
+              </div>
+
+              <!-- Medio de pago -->
+              <div class="pos-payment-select">
+                <label>Medio de Pago:</label>
+                <select class="form-control" [(ngModel)]="posMedioPago">
+                  <option [value]="1">Efectivo</option>
+                  <option [value]="2">Tarjeta Débito / Crédito</option>
+                  <option [value]="3">Transferencia / Yape / Plin</option>
+                </select>
+              </div>
+
+              <!-- Botón procesar venta -->
+              <button type="button" class="btn-pos-checkout" [disabled]="posCarrito.length === 0 || posCargandoVenta" (click)="procesarVentaPos()">
+                {{ posCargandoVenta ? 'Procesando Venta en BD...' : '💳 Confirmar y Procesar Venta' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 2. VISTA CLIENTES (CON BUSCADOR Y EDICIÓN EN BD) ================= -->
+      <div *ngIf="moduloActivo === 'clientes'" class="crud-card">
+        <div class="section-header-flex">
+          <h3>Gestión de Clientes Registrados (Base de Datos)</h3>
+          <!-- BUSCADOR FUNCIONAL SEPARADO -->
+          <input type="text" class="search-box" [(ngModel)]="busquedaCliente" placeholder="🔍 Filtrar cliente por DNI, nombre o correo...">
+        </div>
+
+        <div class="form-box">
+          <h4>{{ modoEdicionCliente ? 'Editar Datos del Cliente en BD' : 'Registrar Nuevo Cliente en BD' }}</h4>
+          <div class="crud-form">
+            <input type="text" [(ngModel)]="clienteForm.dni" placeholder="DNI (8 dígitos)" maxlength="11">
+            <input type="text" [(ngModel)]="clienteForm.nombre" placeholder="Nombre completo">
+            <input type="email" [(ngModel)]="clienteForm.correo" placeholder="Correo electrónico">
+            <input type="password" [(ngModel)]="clienteForm.password" [placeholder]="modoEdicionCliente ? 'Nueva contraseña (opcional)' : 'Contraseña'">
+            <button class="btn-primary" (click)="guardarCliente()">
+              {{ modoEdicionCliente ? 'Guardar Cambios' : '+ Registrar Cliente' }}
+            </button>
+            <button *ngIf="modoEdicionCliente" class="btn-secondary" (click)="resetClienteForm()">Cancelar</button>
+          </div>
+        </div>
+
+        <table class="pro-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>DNI</th>
+              <th>Nombre Completo</th>
+              <th>Correo Electrónico</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of clientesFiltrados">
+              <td>#{{ c.idUsuario }}</td>
+              <td>{{ c.dni }}</td>
+              <td><strong>{{ c.nombre }}</strong></td>
+              <td>{{ c.correo }}</td>
+              <td><span class="status-tag">{{ c.estado ? 'Activo' : 'Inactivo' }}</span></td>
+              <td class="actions-cell">
+                <button class="btn-sm edit" (click)="seleccionarCliente(c)">Editar</button>
+                <button class="btn-sm delete" (click)="borrarCliente(c.idUsuario)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="clientesFiltrados.length === 0">
+              <td colspan="6" class="empty-msg">No se encontraron clientes registrados con ese filtro.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================= 3. VISTA PRODUCTOS (CON BUSCADOR, PRECIOS Y GUARDADO EN BD) ================= -->
+      <div *ngIf="moduloActivo === 'productos'" class="crud-card">
+        <div class="section-header-flex">
+          <h3>Inventario de Productos (Base de Datos)</h3>
+          <!-- BUSCADOR FUNCIONAL SEPARADO -->
+          <input type="text" class="search-box" [(ngModel)]="busquedaProducto" placeholder="🔍 Buscar producto por nombre o ID...">
+        </div>
+
+
+<div class="form-box">
+  <h4>
+    {{ modoEdicionProducto
+      ? 'Editar Producto Seleccionado'
+      : 'Agregar Nuevo Producto a la BD' }}
+  </h4>
+
+  <div class="crud-form">
+    <input
+      type="text"
+      name="nombreProducto"
+      [(ngModel)]="productoForm.nombre"
+      placeholder="Nombre del producto"
+      required>
+
+    <input
+      type="text"
+      name="descripcionProducto"
+      [(ngModel)]="productoForm.descripcion"
+      placeholder="Descripción del producto">
+
+    <select
+      name="marcaProducto"
+      [(ngModel)]="productoForm.idMarca"
+      required>
+      <option [ngValue]="null" disabled>Selecciona una marca</option>
+      <option *ngFor="let marca of marcas" [ngValue]="marca.idMarca">
+        {{ marca.nombre }}
+      </option>
+    </select>
+
+    <select
+      name="categoriaProducto"
+      [(ngModel)]="productoForm.idCategoria"
+      required>
+      <option [ngValue]="null" disabled>Selecciona una categoría</option>
+      <option *ngFor="let categoria of categorias" [ngValue]="categoria.idCategoria">
+        {{ categoria.nombre }}
+      </option>
+    </select>
+
+    <input
+      type="number"
+      name="precioProducto"
+      [(ngModel)]="productoForm.precio"
+      placeholder="Precio (S/)"
+      min="0"
+      step="0.01"
+      required>
+
+    <input
+      type="number"
+      name="stockProducto"
+      [(ngModel)]="productoForm.stock"
+      placeholder="Stock disponible"
+      min="0"
+      step="1"
+      required>
+
+    <input
+      type="number"
+      name="stockMinimoProducto"
+      [(ngModel)]="productoForm.stockMinimo"
+      placeholder="Stock mínimo"
+      min="0"
+      step="1">
+
+    <button class="btn-primary" (click)="guardarProducto()">
+      {{ modoEdicionProducto ? 'Guardar Cambios' : '+ Agregar Producto' }}
+    </button>
+
+    <button
+      *ngIf="modoEdicionProducto"
+      class="btn-secondary"
+      (click)="resetProductoForm()">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+
+        <table class="pro-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Marca</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of productosFiltrados">
+              <td>#{{ p.idProducto || p.id }}</td>
+              <td><strong>{{ p.nombre }}</strong></td>
+              <td>{{ p.marca?.nombre || 'Sin marca' }}</td>
+              <td><strong>S/ {{ obtenerPrecio(p) | number:'1.2-2' }}</strong></td>
+              <td><span [class.low-stock]="p.stock <= 3">{{ p.stock }} und.</span></td>
+              <td class="actions-cell">
+                <button class="btn-sm edit" (click)="seleccionarProducto(p)">Editar</button>
+                <button class="btn-sm delete" (click)="borrarProducto(p)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="productosFiltrados.length === 0">
+              <td colspan="5" class="empty-msg">No hay productos que coincidan con la búsqueda.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================= 4. VISTA TICKETS / RESERVAS ================= -->
+      <div *ngIf="moduloActivo === 'tickets'" class="crud-card">
+        <h3>Tickets de Servicio Técnico y Reservas ({{ reservas.length }})</h3>
+        <table class="pro-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Fecha y Hora</th>
+              <th>Modalidad</th>
+              <th>Problema Reportado</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of reservas">
+              <td><strong>{{ r.nombre }}</strong> ({{ r.dni }})</td>
+              <td>{{ r.fecha }} {{ r.hora }}</td>
+              <td>{{ r.tipo }}</td>
+              <td>{{ r.detalle }}</td>
+              <td>
+                <span class="status-tag" [ngClass]="{'status-ok': r.estado === 'ATENDIDA' || r.estado === 'Atendida'}">
+                  {{ r.estado || 'Pendiente' }}
+                </span>
+              </td>
+              <td>
+                <button *ngIf="r.estado !== 'ATENDIDA' && r.estado !== 'Atendida'"
+                        class="btn-action-atender"
+                        (click)="atenderTicket(r)"
+                        title="Marcar como atendida y notificar al cliente por correo">
+                  ✓ Atender / Finalizar
+                </button>
+                <span *ngIf="r.estado === 'ATENDIDA' || r.estado === 'Atendida'" class="badge-completed">
+                  ✓ Notificado
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="reservas.length === 0">
+              <td colspan="5" class="empty-msg">No hay reservas registradas por el momento.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================= 5. PANEL TRABAJADORES (EXCLUSIVO PARA ROL ADMINISTRADOR) ================= -->
+      <div *ngIf="moduloActivo === 'usuarios' && esAdmin()" class="crud-card">
+        <h3>Panel Administrador: Gestión de Trabajadores Autorizados</h3>
+
+        <div class="form-box">
+          <h4>{{ modoEdicionTrabajador ? 'Editar Trabajador' : 'Registrar Nuevo Trabajador (Vendedor / Técnico / Admin)' }}</h4>
+          <div class="crud-form">
+            <input type="text" [(ngModel)]="trabajadorForm.dni" placeholder="DNI (8 dígitos)" maxlength="8">
+            <input type="text" [(ngModel)]="trabajadorForm.nombre" placeholder="Nombres y Apellidos">
+            <input type="email" [(ngModel)]="trabajadorForm.correo" placeholder="Correo corporativo">
+            <input type="password" [(ngModel)]="trabajadorForm.password" [placeholder]="modoEdicionTrabajador ? 'Nueva clave (opcional)' : 'Contraseña'">
+            <select
+  [(ngModel)]="trabajadorForm.idRol"
+  name="idRol"
+  required
+>
+  <option [ngValue]="null" disabled>Selecciona un rol</option>
+
+  <option *ngFor="let rol of roles" [ngValue]="rol.idRol">
+    {{ rol.nombre }}
+  </option>
+</select>
+            <button class="btn-primary" (click)="guardarTrabajador()">
+              {{ modoEdicionTrabajador ? 'Guardar Cambios' : '+ Crear Trabajador' }}
+            </button>
+            <button *ngIf="modoEdicionTrabajador" class="btn-secondary" (click)="resetTrabajadorForm()">Cancelar</button>
+          </div>
+        </div>
+
+        <table class="pro-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>DNI</th>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Rol Asignado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of trabajadores">
+              <td>#{{ t.idUsuario }}</td>
+              <td>{{ t.dni }}</td>
+              <td><strong>{{ t.nombre }}</strong></td>
+              <td>{{ t.correo }}</td>
+              <td><span class="status-tag">{{ t.rol?.nombre || t.rol }}</span></td>
+              <td class="actions-cell">
+                <button class="btn-sm edit" (click)="seleccionarTrabajador(t)">Editar</button>
+                <button class="btn-sm delete" (click)="borrarTrabajador(t.idUsuario)">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>

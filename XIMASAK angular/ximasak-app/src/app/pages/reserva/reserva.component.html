@@ -1,0 +1,166 @@
+<!--FORMULARIO CLIENTE-->
+<div class="contenedor-formulario" *ngIf="!auth.esAdminActivo()">
+  <h2 class="titulo-reserva">Reservar Servicio</h2>
+  <form novalidate class="formulario-balsamiq" (ngSubmit)="enviarReserva()">
+    <div class="grupo-form">
+      <label for="nombre">Nombre Completo <span class="required">*</span></label>
+      <input type="text" id="nombre" class="input-balsamiq" required [(ngModel)]="nombre" name="nombre" />
+    </div>
+    <div class="grupo-form">
+      <label for="dni">DNI <span class="required">*</span></label>
+      <input type="text" id="dni" class="input-balsamiq" required maxlength="8" [(ngModel)]="dni" name="dni" />
+    </div>
+    
+<!-- RUC OPCIONAL -->
+<div class="grupo-form">
+  <label for="ruc">RUC (opcional)</label>
+  <input
+    type="text"
+    id="ruc"
+    class="input-balsamiq"
+    maxlength="11"
+    [(ngModel)]="ruc"
+    name="ruc"
+    placeholder="Ingrese su RUC de 11 dígitos"
+  />
+</div>
+
+
+<!-- CORREO ELECTRÓNICO -->
+<div class="grupo-form">
+  <label for="correo">
+    Correo electrónico <span class="required">*</span>
+  </label>
+  <input
+    type="email"
+    id="correo"
+    class="input-balsamiq"
+    [(ngModel)]="correo"
+    name="correo"
+    placeholder="ejemplo@correo.com"
+    required
+  />
+</div>
+
+<!-- TELÉFONO -->
+<div class="grupo-form">
+  <label for="telefono">
+    Número de teléfono <span class="required">*</span>
+  </label>
+  <input
+    type="tel"
+    id="telefono"
+    class="input-balsamiq"
+    maxlength="15"
+    [(ngModel)]="telefono"
+    name="telefono"
+    placeholder="Ingrese su número de teléfono"
+    required
+  />
+</div>
+
+
+    <div class="grupo-form">
+      <label for="hora">HORA (hh:mm) <span class="required">*</span></label>
+      <input type="time" id="hora" class="input-balsamiq" required [(ngModel)]="hora" name="hora" />
+    </div>
+
+    <!--CALENDARIO-->
+    <div class="grupo-form">
+      <label id="label-calendario">Seleccione Fecha <span class="required">*</span></label>
+      <div class="calendar-container" role="group" aria-labelledby="label-calendario">
+        <div class="calendar-header">
+          <button type="button" class="btn-cal" aria-label="Mes anterior" (click)="mesAnterior()">&lt;</button>
+          <span class="calendar-month-year" aria-live="polite">{{ tituloMesAnio() }}</span>
+          <button type="button" class="btn-cal" aria-label="Mes siguiente" (click)="mesSiguiente()">&gt;</button>
+        </div>
+        <div class="calendar-grid">
+          <div class="cal-day-header" *ngFor="let dia of diasSemana">{{ dia }}</div>
+          <ng-container *ngFor="let celda of celdas()">
+            <div *ngIf="celda.dia === null" class="empty"></div>
+            <button
+              *ngIf="celda.dia !== null"
+              type="button"
+              class="cal-day-btn"
+              [class.selected]="celda.seleccionado"
+              (click)="seleccionarDia(celda.dia)"
+            >
+              {{ celda.dia }}
+            </button>
+          </ng-container>
+        </div>
+      </div>
+      <input type="hidden" [value]="fechaSeleccionada()" required />
+    </div>
+
+    <div class="grupo-form">
+      <label for="tipoEquipo">Seleccione Consulta o Atención</label>
+      <select id="tipoEquipo" class="input-balsamiq" [(ngModel)]="tipoEquipo" name="tipoEquipo">
+          <option value="mantenimiento">Mantenimiento preventivo</option>
+          <option value="reparacion_laptop">Reparación de laptop</option>
+          <option value="formateo_so">Formateo e instalación de SO</option>
+          <option value="otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="grupo-form">
+      <label for="falla">Describa la falla / producto <span class="required">*</span></label>
+      <textarea id="falla" rows="4" class="input-balsamiq" required [(ngModel)]="falla" name="falla"></textarea>
+    </div>
+
+    <button type="submit" class="btn-principal btn-block">Confirmar Reserva</button>
+  </form>
+  <div *ngIf="notificacionVisible()" role="alert" style="margin-top: 15px; text-align: center; color: green; font-weight: bold;">
+    {{ mensajeNotificacion }}
+  </div>
+</div>
+
+<!--PANEL ADMIN DE RESERVAS-->
+<div class="contenedor-formulario" style="max-width: 800px;" *ngIf="auth.esAdminActivo()">
+  <h2 class="titulo-reserva" style="color: var(--azul-ximasak);">Gestión de Reservas Pendientes</h2>
+  <div style="display: flex; flex-direction: column; gap: 15px;">
+    <p *ngIf="reservasOrdenadas().length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">
+      No hay reservas registradas en el sistema.
+    </p>
+
+    <div
+      *ngFor="let reserva of reservasOrdenadas()"
+      class="reserva-card"
+      [class.reserva-atendida]="reserva.estado === 'Atendida'"
+    >
+      <div style="flex: 1;">
+        <h4 style="margin-bottom: 5px; font-size: 16px;">
+          {{ reserva.nombre }}
+          <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">(DNI: {{ reserva.dni }})</span>
+        </h4>
+        <p style="font-size: 13px; margin-bottom: 5px; color: var(--text-color);">
+          <strong>Fecha:</strong> {{ reserva.fecha }} | <strong>Hora:</strong> {{ reserva.hora }} | <strong>Tipo:</strong> {{ reserva.tipo }}
+        </p>
+        <p class="reserva-detalle">
+          "{{ reserva.detalle }}"
+        </p>
+        <p
+          style="margin-top: 8px; font-size: 12px; font-weight: bold;"
+          [style.color]="reserva.estado === 'Atendida' ? 'var(--estado-atendida-texto)' : 'var(--estado-pendiente-texto)'"
+        >
+          Estado: {{ reserva.estado }}
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 130px;">
+        <button
+          class="btn-secundario btn-sm"
+          [disabled]="reserva.estado === 'Atendida'"
+          [style.border-color]="reserva.estado === 'Atendida' ? 'var(--gris-borde)' : 'var(--estado-atendida-borde)'"
+          [style.color]="reserva.estado === 'Atendida' ? 'var(--text-muted)' : 'var(--estado-atendida-borde)'"
+          (click)="marcarAtendida(reserva.id)"
+        >
+          ✔ Atendida
+        </button>
+        <button class="btn-secundario btn-sm" style="border-color: red; color: red;" (click)="eliminarReserva(reserva.id)">
+          🗑 Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

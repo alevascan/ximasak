@@ -1,0 +1,76 @@
+<header>
+    <!-- Logo y Título -->
+    <div class="brand nav-link" routerLink="/">
+        <img src="assets/fotos/xima.png" alt="Logo XIMASAK EIRL" class="logo-img">
+        <h1>XIMASAK EIRL - Soluciones Integrales</h1>
+    </div>
+    
+    <div class="header-actions">
+        <!-- Botón de Iniciar Sesión (Se oculta si el usuario ya ingresó) -->
+        <button *ngIf="!usuarioLogueado" class="btn-secundario" (click)="abrirModalLogin()" style="padding: 8px 16px; border-radius: 20px;">
+            Iniciar Sesión
+        </button>
+        
+        <!-- Botón de Cerrar Sesión (Se muestra solo si el usuario ya ingresó) -->
+        <button *ngIf="usuarioLogueado" class="btn-secundario" (click)="cerrarSesion()" style="padding: 8px 16px; border-radius: 20px; color: red;">
+            Cerrar Sesión
+        </button>
+        
+        <!-- Botón de Alto Contraste -->
+        <button class="btn-contraste" (click)="alternarContraste()">
+            <img src="assets/fotos/contraste.png" alt="Icono Contraste" class="icono-btn"> Alternar Contraste
+        </button>
+    </div>
+</header> 
+
+<!-- MODAL DE LOGIN Y REGISTRO -->
+<!-- Usamos style="display: flex;" porque el *ngIf ya se encarga de agregarlo o quitarlo del DOM -->
+<div class="modal-overlay" *ngIf="mostrarModalAuth" style="display: flex;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header" style="background-color: var(--azul-ximasak);">
+            <h3>{{ modoRegistro ? 'Crear Cuenta' : 'Acceso al Sistema' }}</h3>
+            <span class="close-modal" (click)="cerrarModal()">&times;</span>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Pestañas de Navegación (Ingresar / Registrar) -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn-sm" [class.btn-principal]="!modoRegistro" [class.btn-secundario]="modoRegistro" (click)="modoRegistro = false">Ingresar</button>
+                <button class="btn-sm" [class.btn-principal]="modoRegistro" [class.btn-secundario]="!modoRegistro" (click)="modoRegistro = true">Registrar</button>
+            </div>
+
+            <!-- Formulario de LOGIN -->
+            <div *ngIf="!modoRegistro">
+                <label class="mb-10">Correo Electrónico</label>
+                <input type="email" [(ngModel)]="loginData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
+                
+                <label class="mb-10 mt-10">Contraseña</label>
+                <input type="password" [(ngModel)]="loginData.password" class="input-full mb-10" placeholder="Contraseña">
+                
+                <button class="btn-principal btn-block mt-20" (click)="hacerLogin()">Ingresar</button>
+            </div>
+
+            <!-- Formulario de REGISTRO (Para clientes) -->
+            <div *ngIf="modoRegistro">
+                <label class="mb-10">DNI</label>
+                <input type="text" [(ngModel)]="registroData.dni" class="input-full mb-10" placeholder="DNI (8 dígitos)" maxlength="8">
+                
+                <label class="mb-10 mt-10">Nombres Completos</label>
+                <input type="text" [(ngModel)]="registroData.nombre" class="input-full mb-10" placeholder="Nombres">
+                
+                <label class="mb-10 mt-10">Correo Electrónico</label>
+                <input type="email" [(ngModel)]="registroData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
+                
+                <label class="mb-10 mt-10">Contraseña</label>
+                <input type="password" [(ngModel)]="registroData.password" class="input-full mb-10" placeholder="Contraseña">
+                
+                <button class="btn-principal btn-block mt-20" (click)="hacerRegistro()">Crear Cuenta</button>
+            </div>
+            
+            <!-- Mensaje de Error (Si las credenciales fallan o faltan datos) -->
+            <p *ngIf="mensajeError" style="color: red; text-align: center; margin-top: 15px; font-weight: bold;">
+                {{ mensajeError }}
+            </p>
+        </div>
+    </div>
+</div>
