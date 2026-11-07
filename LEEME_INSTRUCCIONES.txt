@@ -1,0 +1,86 @@
+================================================================================
+  PROYECTO SIRVS - SISTEMA INTEGRADO DE RESERVAS, VENTAS Y SERVICIO TÉCNICO
+                       EMPRESA: XIMASAK EIRL - T2 SEMANA 10
+================================================================================
+
+Este paquete contiene el sistema completo con todos los arreglos, correcciones
+y nuevas funcionalidades implementadas para la entrega de la Evaluación T2.
+
+--------------------------------------------------------------------------------
+1. ESTRUCTURA DEL PROYECTO
+--------------------------------------------------------------------------------
+• backend/                 : Proyecto Spring Boot 3.5 con Java 21.
+• XIMASAK angular/ximasak-app/ : Proyecto Frontend en Angular 17.
+• ximasak_full/ximasak_bd_final.sql : Script completo y actualizado de la BD MySQL / MariaDB.
+• dist/                    : Compilación lista para producción de la aplicación Angular.
+
+--------------------------------------------------------------------------------
+2. REQUERIMIENTOS Y DEPENDENCIAS
+--------------------------------------------------------------------------------
+• Java JDK 21 (incluye wrapper mvnw.cmd, no requiere instalar Maven aparte).
+• Node.js v18+ y npm.
+• MySQL o MariaDB (puerto 3306).
+
+--------------------------------------------------------------------------------
+3. PASOS PARA EJECUTAR EL SISTEMA
+--------------------------------------------------------------------------------
+
+PASO 1: BASE DE DATOS
+  - Abre phpMyAdmin o tu cliente MySQL (puerto 3306, usuario 'root', sin contraseña o la de tu equipo).
+  - Crea la base de datos llamada: ximasak
+  - Importa el archivo: ximasak_full\ximasak_bd_final.sql
+
+PASO 2: BACKEND (SPRING BOOT)
+  - Abre una consola dentro de la carpeta: ximasak_full\backend
+  - Ejecuta:
+      .\mvnw.cmd spring-boot:run
+  - El backend iniciará en: http://localhost:8080
+
+PASO 3: FRONTEND (ANGULAR)
+  - Abre una consola dentro de la carpeta: XIMASAK angular\ximasak-app
+  - Ejecuta:
+      npm start
+  - La aplicación web estará disponible en: http://localhost:4200
+
+--------------------------------------------------------------------------------
+4. CREDENCIALES DE PRUEBA ACTIVAS EN BD
+--------------------------------------------------------------------------------
+• USUARIO ADMINISTRADOR:
+    Correo     : tasillamatias@gmail.com
+    Contraseña : 1234
+    Rol        : Administrador (acceso a Result, POS, Clientes, Productos, Tickets, Trabajadores)
+
+• USUARIO CLIENTE:
+    Correo     : juanpablo@gmail.com
+    Contraseña : 123456
+    Rol        : Cliente
+
+--------------------------------------------------------------------------------
+5. RESUMEN DE ARREGLOS Y NUEVAS VISTAS IMPLEMENTADAS
+--------------------------------------------------------------------------------
+1. 🛒 TERMINAL PUNTO DE VENTA (POS) Y CARRITO (HU-04 y HU-05):
+   - Módulo en el menú lateral del Dashboard.
+   - Búsqueda de clientes por DNI/RUC en mostrador con validación en BD (HU-04).
+   - Selección de repuestos/productos con adición interactiva al carrito (HU-05).
+   - Cálculo automático en tiempo real de Subtotal sin IGV, I.G.V. (18%) y Total.
+   - Selección de medio de pago y procesamiento transaccional en MySQL (/api/ventas)
+     descontando existencias de inventario automáticamente.
+
+2. 🔧 TICKETS DE SOPORTE TÉCNICO Y ACCIONES EN VIVO (HU-08, HU-09, HU-11):
+   - Columna "Acciones" con botón "Atender" en la tabla de Tickets del Dashboard.
+   - Al hacer clic, actualiza el estado en MySQL a 'ATENDIDA' con badge verde.
+   - Envío automático de correo al cliente notificando que su equipo fue reparado (HU-11).
+
+3. 🛡️ DEFECTOS CERRADOS AL 100% (SECCIÓN 6.4 DEL INFORME):
+   - DEF-01: Corregido el mapeo @PostMapping('/registro') en AuthController.java.
+   - DEF-02: Incluido el rol 'CLIENTE' (ID: 4) en la tabla roles de la BD.
+   - DEF-03: Creada la pantalla /resetear-password en Angular para restablecer clave.
+   - DEF-04: Bloqueo automático de cuenta tras 3 intentos fallidos de login (RNF-02).
+   - DEF-05: El catálogo público ahora consume directamente los productos de la BD MySQL
+             en lugar de usar localStorage.
+   - DEF-06: Codificación UTF-8 estandarizada en todos los archivos.
+
+4. 🧪 PRUEBAS AUTOMATIZADAS:
+   - 15 pruebas unitarias JUnit 5 en el backend (100% aprobadas).
+   - 11 casos de prueba funcionales E2E validados con evidencias gráficas en el informe Word.
+================================================================================

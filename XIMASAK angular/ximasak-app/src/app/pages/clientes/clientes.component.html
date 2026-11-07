@@ -1,0 +1,129 @@
+
+<div class="clientes-container">
+  <header class="encabezado">
+    <div>
+      <h1>Gestión de clientes</h1>
+      <p>Consulta y administra los clientes registrados en Ximasak.</p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-actualizar"
+      (click)="listarClientes()"
+      [disabled]="cargando">
+      {{ cargando ? 'Cargando...' : 'Actualizar lista' }}
+    </button>
+  </header>
+
+  <section class="resumen">
+    <div class="tarjeta-resumen">
+      <span class="resumen-label">Total de clientes</span>
+      <strong>{{ clientes.length }}</strong>
+    </div>
+
+    <div class="tarjeta-resumen">
+      <span class="resumen-label">Clientes activos</span>
+      <strong>{{ totalActivos }}</strong>
+    </div>
+  </section>
+
+  <section class="tabla-card">
+    <div class="barra-herramientas">
+      <input
+        type="text"
+        [(ngModel)]="filtro"
+        placeholder="Buscar por DNI, nombre o correo..."
+        aria-label="Buscar clientes">
+
+      <span class="contador">
+        {{ clientesFiltrados.length }} resultado(s)
+      </span>
+    </div>
+
+    <div *ngIf="cargando" class="mensaje">
+      Cargando clientes...
+    </div>
+
+    <div *ngIf="error && !cargando" class="mensaje error">
+      {{ error }}
+      <button type="button" (click)="listarClientes()">
+        Reintentar
+      </button>
+    </div>
+
+    <div class="tabla-scroll" *ngIf="!cargando && !error">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>DNI</th>
+            <th>Nombre completo</th>
+            <th>Correo electrónico</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let cliente of clientesFiltrados">
+            <td>{{ cliente.idCliente }}</td>
+            <td>{{ cliente.dni || '—' }}</td>
+            <td>{{ cliente.nombre || 'Sin nombre' }}</td>
+            <td>{{ cliente.correo || 'Sin correo' }}</td>
+
+            <td>
+              <span
+                class="estado"
+                [class.activo]="estaActivo(cliente)"
+                [class.inactivo]="!estaActivo(cliente)">
+                {{ estaActivo(cliente) ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="btn-ver"
+                (click)="verCliente(cliente)">
+                Ver detalles
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="clientesFiltrados.length === 0">
+            <td colspan="6" class="sin-resultados">
+              {{
+                clientes.length === 0
+                  ? 'No hay clientes registrados.'
+                  : 'No se encontraron clientes con ese filtro.'
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="detalle-card" *ngIf="clienteSeleccionado as cliente">
+    <div class="detalle-encabezado">
+      <h2>Detalle del cliente</h2>
+      <button
+        type="button"
+        class="btn-cerrar"
+        (click)="cerrarDetalle()">
+        Cerrar
+      </button>
+    </div>
+
+    <p><strong>Nombre:</strong> {{ cliente.nombre || '—' }}</p>
+    <p><strong>DNI:</strong> {{ cliente.dni || '—' }}</p>
+    <p><strong>RUC:</strong> {{ cliente.ruc || '—' }}</p>
+    <p><strong>Correo:</strong> {{ cliente.correo || '—' }}</p>
+    <p><strong>Teléfono:</strong> {{ cliente.telefono || '—' }}</p>
+    <p><strong>Dirección:</strong> {{ cliente.direccion || '—' }}</p>
+    <p>
+      <strong>Estado:</strong>
+      {{ estaActivo(cliente) ? 'Activo' : 'Inactivo' }}
+    </p>
+  </section>
+</div>

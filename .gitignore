@@ -1,0 +1,29 @@
+# Node / Angular
+**/node_modules/
+**/.angular/
+**/dist/
+
+# Java / Maven / Spring Boot
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs & Editors
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
