@@ -4,6 +4,7 @@ import com.ximasak.backend.entity.Producto;
 import com.ximasak.backend.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -27,6 +28,7 @@ public class ProductoService {
     }
 
     public Producto guardar(Producto p) {
+        validarDatosProducto(p);
         if (p.getEstado() == null) {
             p.setEstado(true);
         }
@@ -35,9 +37,24 @@ public class ProductoService {
 
     public Producto actualizar(Integer id, Producto p) {
         return productoRepository.findById(id).map(existente -> {
-            if (p.getNombre() != null) existente.setNombre(p.getNombre());
-            if (p.getPrecioUnitario() != null) existente.setPrecioUnitario(p.getPrecioUnitario());
-            if (p.getStock() != null) existente.setStock(p.getStock());
+            if (p.getNombre() != null) {
+                if (p.getNombre().trim().isEmpty()) {
+                    throw new IllegalArgumentException("El nombre del producto no puede estar vacío");
+                }
+                existente.setNombre(p.getNombre().trim());
+            }
+            if (p.getPrecioUnitario() != null) {
+                if (p.getPrecioUnitario().compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("El precio unitario debe ser mayor a cero");
+                }
+                existente.setPrecioUnitario(p.getPrecioUnitario());
+            }
+            if (p.getStock() != null) {
+                if (p.getStock() < 0) {
+                    throw new IllegalArgumentException("El stock no puede ser negativo");
+                }
+                existente.setStock(p.getStock());
+            }
             if (p.getStockMinimo() != null) existente.setStockMinimo(p.getStockMinimo());
             if (p.getEstado() != null) existente.setEstado(p.getEstado());
             if (p.getDescripcion() != null) existente.setDescripcion(p.getDescripcion());
@@ -45,7 +62,27 @@ public class ProductoService {
         }).orElseThrow(() -> new RuntimeException("Producto no encontrado con ID " + id));
     }
 
+    /** Baja lógica para preservar integridad referencial con ventas y movimientos históricos. */
     public void eliminar(Integer id) {
-        productoRepository.deleteById(id);
+        Producto existente = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID " + id));
+        existente.setEstado(false);
+        productoRepository.save(existente);
+    }
+
+    private void validarDatosProducto(Producto p) {
+        if (p == null) {
+            throw new IllegalArgumentException("El producto no puede ser nulo");
+        }
+        if (p.getNombre() == null || p.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del producto es obligatorio");
+        }
+        if (p.getPrecioUnitario() == null || p.getPrecioUnitario().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El precio unitario debe ser mayor a cero");
+        }
+        if (p.getStock() == null || p.getStock() < 0) {
+            throw new IllegalArgumentException("El stock inicial no puede ser negativo");
+        }
+        p.setNombre(p.getNombre().trim());
     }
 }

@@ -28,7 +28,7 @@
 }
 
 .logo-icon {
-  background: #1890ff;
+  background: #0958d9;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -48,7 +48,7 @@
 .pro-menu button {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.85);
   padding: 14px 24px;
   text-align: left;
   font-size: 14px;
@@ -65,7 +65,7 @@
 
 /* FRANJA AZUL BRILLANTE ACTIVA IDÉNTICA A "Result" EN LA FOTO */
 .pro-menu button.active {
-  background-color: #1890ff;
+  background-color: #0958d9;
   color: #ffffff;
   font-weight: 600;
 }
@@ -87,7 +87,7 @@
   cursor: pointer;
 }
 .btn-logout-side {
-  background: #ff4d4f;
+  background: #cf1322;
   color: #fff;
   border: none;
   padding: 10px;
@@ -141,7 +141,7 @@
   position: absolute;
   top: -8px;
   right: -10px;
-  background: #ff4d4f;
+  background: #cf1322;
   color: #fff;
   font-size: 11px;
   padding: 1px 6px;
@@ -159,7 +159,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1890ff;
+  background: #0958d9;
   color: white;
   display: flex;
   align-items: center;
@@ -199,7 +199,7 @@
 .metric-header {
   display: flex;
   justify-content: space-between;
-  color: #8c8c8c;
+  color: #595959;
   font-size: 14px;
 }
 
@@ -225,7 +225,7 @@
 }
 
 .up { color: #f5222d; }
-.down { color: #52c41a; }
+.down { color: #15803d; }
 
 .wave-svg {
   width: 100%;
@@ -243,7 +243,7 @@
 
 .m-bar {
   flex: 1;
-  background-color: #1890ff;
+  background-color: #0958d9;
   border-radius: 2px 2px 0 0;
 }
 
@@ -260,9 +260,9 @@
   justify-content: center;
   text-align: center;
 }
-.op-title { color: #8c8c8c; font-size: 15px; }
+.op-title { color: #595959; font-size: 15px; }
 .op-value { font-size: 38px; color: #262626; margin: 12px 0; }
-.op-sub { font-size: 12px; color: #ff4d4f; }
+.op-sub { font-size: 12px; color: #cf1322; }
 
 /* TARJETA GRANDE DE GRÁFICO Y RANKING */
 .big-chart-card {
@@ -289,8 +289,8 @@
   padding-bottom: 12px;
 }
 .tab-item.active {
-  color: #1890ff;
-  border-bottom: 2px solid #1890ff;
+  color: #0958d9;
+  border-bottom: 2px solid #0958d9;
   font-weight: 600;
 }
 
@@ -301,7 +301,7 @@
   font-size: 13px;
   color: #595959;
 }
-.active-filter { color: #1890ff; font-weight: 600; }
+.active-filter { color: #0958d9; font-weight: 600; }
 .date-range-box {
   border: 1px solid #d9d9d9;
   border-radius: 4px;
@@ -317,7 +317,7 @@
   gap: 40px;
 }
 
-.trend-column h4, .ranking-column h4 {
+.trend-column h2, .ranking-column h2, .trend-column h4, .ranking-column h4 {
   font-size: 15px;
   color: #262626;
   margin-bottom: 20px;
@@ -335,7 +335,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding-right: 12px;
-  color: #8c8c8c;
+  color: #595959;
   font-size: 12px;
   padding-bottom: 24px;
 }
@@ -449,7 +449,7 @@
 }
 
 .btn-primary {
-  background: #1890ff;
+  background: #0958d9;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -458,7 +458,7 @@
   font-weight: 600;
 }
 .btn-secondary {
-  background: #8c8c8c;
+  background: #595959;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -487,17 +487,17 @@
   font-size: 12px;
 }
 .btn-sm.edit { background: #faad14; }
-.btn-sm.delete { background: #ff4d4f; }
-.low-stock { color: #ff4d4f; font-weight: bold; }
+.btn-sm.delete { background: #cf1322; }
+.low-stock { color: #cf1322; font-weight: bold; }
 .status-tag {
   background: #e6f7ff;
-  color: #1890ff;
+  color: #0958d9;
   border: 1px solid #91d5ff;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
 }
-.empty-msg { text-align: center; color: #8c8c8c; padding: 24px; }
+.empty-msg { text-align: center; color: #595959; padding: 24px; }
 /* CAMPANA Y DROPDOWN DE RESERVAS */
 .bell-btn {
   font-size: 18px;
@@ -544,13 +544,13 @@
   background: #e6f7ff;
 }
 .notif-title { font-size: 13px; font-weight: 600; color: #262626; }
-.notif-sub { font-size: 12px; color: #8c8c8c; margin-top: 2px; }
-.notif-empty { padding: 20px; text-align: center; color: #8c8c8c; font-size: 13px; }
+.notif-sub { font-size: 12px; color: #595959; margin-top: 2px; }
+.notif-empty { padding: 20px; text-align: center; color: #595959; font-size: 13px; }
 .notif-footer {
   padding: 10px;
   text-align: center;
   font-size: 13px;
-  color: #1890ff;
+  color: #0958d9;
   font-weight: 600;
   cursor: pointer;
   background: #fafafa;
@@ -567,7 +567,7 @@
   border-radius: 4px;
 }
 .filter-btn.active-filter {
-  color: #1890ff;
+  color: #0958d9;
   background: #e6f7ff;
   font-weight: 600;
 }
@@ -590,11 +590,11 @@
   background: #fafafa;
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
-  color: #8c8c8c;
+  color: #595959;
   font-size: 14px;
 }
 .real-stat-note { font-size: 13px; color: #595959; }
-.op-ok { font-size: 12px; color: #52c41a; font-weight: 600; }
+.op-ok { font-size: 12px; color: #15803d; font-weight: 600; }
 
 /* BUSCADORES Y FORMULARIOS SEPARADOS */
 .section-header-flex {
@@ -608,7 +608,7 @@
 .search-box {
   width: 320px;
   padding: 9px 14px;
-  border: 1px solid #1890ff;
+  border: 1px solid #0958d9;
   border-radius: 6px;
   font-size: 14px;
   outline: none;

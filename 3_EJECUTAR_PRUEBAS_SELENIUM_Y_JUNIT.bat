@@ -19,7 +19,7 @@ if %errorlevel% neq 0 (
 )
 
 cd /d "%~dp0ximasak_full\backend"
-call .\mvnw.cmd test -Dtest="AuthServiceTest,VentaServiceTest,ClienteServiceTest,PasswordResetServiceTest,SirvsSeleniumTest"
+call .\mvnw.cmd test -Dtest="AuthServiceTest,VentaServiceTest,ClienteServiceTest,PasswordResetServiceTest,ProductoServiceTest,ComprobanteServiceTest,JwtServiceTest,SirvsSeleniumTest"
 
 echo.
 echo ============================================================================

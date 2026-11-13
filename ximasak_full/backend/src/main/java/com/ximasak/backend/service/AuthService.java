@@ -57,21 +57,9 @@ public class AuthService {
     
     @Transactional
     public Usuario crearUsuarioConRol(String dni, String nombre, String correo, String password, String nombreRol) {
-        if (usuarioRepository.findByCorreo(correo).isPresent()) {
-            throw new RuntimeException("El correo ya está registrado.");
-        }
         Rol rolAsignado = rolRepository.findByNombre(nombreRol.toUpperCase())
                 .orElseThrow(() -> new RuntimeException("El rol " + nombreRol + " no existe en la BD."));
-
-        Usuario u = new Usuario();
-        u.setDni(dni);
-        u.setNombre(nombre);
-        u.setCorreo(correo);
-        u.setEstado(true);
-        u.setPassword(passwordEncoder.encode(password));
-        u.setRol(rolAsignado);
-
-        return usuarioRepository.save(u);
+        return construirYGuardarUsuario(dni, nombre, correo, password, rolAsignado);
     }
 
     public Usuario buscarUsuarioPorCorreo(String correo) {
@@ -114,16 +102,18 @@ public class AuthService {
     // 2. Crear trabajador o cliente desde el Dashboard (busca el rol sin importar mayúsculas/minúsculas)
     @Transactional
     public Usuario crearUsuarioDesdeAdmin(String dni, String nombre, String correo, String password, String nombreRol) {
-        if (usuarioRepository.findByCorreo(correo).isPresent()) {
-            throw new RuntimeException("El correo ya está registrado.");
-        }
-
         Rol rolAsignado = rolRepository.findAll().stream()
                 .filter(r -> r.getNombre().equalsIgnoreCase(nombreRol) ||
                         (nombreRol.equalsIgnoreCase("ADMIN") && r.getNombre().toUpperCase().contains("ADMIN")))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No se encontró el rol: " + nombreRol));
+        return construirYGuardarUsuario(dni, nombre, correo, password, rolAsignado);
+    }
 
+    private Usuario construirYGuardarUsuario(String dni, String nombre, String correo, String password, Rol rolAsignado) {
+        if (usuarioRepository.findByCorreo(correo).isPresent()) {
+            throw new RuntimeException("El correo ya está registrado.");
+        }
         Usuario u = new Usuario();
         u.setDni(dni);
         u.setNombre(nombre);
@@ -131,7 +121,6 @@ public class AuthService {
         u.setEstado(true);
         u.setPassword(passwordEncoder.encode(password));
         u.setRol(rolAsignado);
-
         return usuarioRepository.save(u);
     }
 

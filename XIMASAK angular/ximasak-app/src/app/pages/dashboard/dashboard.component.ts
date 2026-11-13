@@ -701,10 +701,20 @@ resetProductoForm() {
   posCargandoVenta: boolean = false;
   posFiltroProducto: string = '';
 
+  obtenerNombreMarca(p: any): string {
+    if (!p || !p.marca) return 'Sin marca';
+    if (typeof p.marca === 'string') return p.marca;
+    if (typeof p.marca === 'object' && p.marca.nombre) return String(p.marca.nombre);
+    return 'Sin marca';
+  }
+
   get productosFiltradosPos(): any[] {
     const f = this.posFiltroProducto.trim().toLowerCase();
     if (!f) return this.productos;
-    return this.productos.filter((p: any) => (p.nombre || '').toLowerCase().includes(f));
+    return this.productos.filter((p: any) =>
+      (p.nombre || '').toLowerCase().includes(f) ||
+      this.obtenerNombreMarca(p).toLowerCase().includes(f)
+    );
   }
 
   buscarClientePos(): void {

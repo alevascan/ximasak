@@ -105,4 +105,22 @@ class AuthServiceTest {
         assertTrue(exception.getMessage().contains("ya se encuentra registrado"));
         verify(usuarioRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("CP-UT-26: Tres intentos fallidos consecutivos bloquean temporalmente la cuenta")
+    void testLogin_TresIntentosFallidos_BloqueaCuentaTemporalmente() {
+        when(usuarioRepository.findByCorreo("admin@ximasak.com")).thenReturn(Optional.of(usuarioAdmin));
+        when(passwordEncoder.matches("claveIncorrecta", "$2a$10$hashedPassword")).thenReturn(false);
+
+        for (int i = 0; i < 3; i++) {
+            assertThrows(RuntimeException.class, () ->
+                    authService.login("admin@ximasak.com", "claveIncorrecta"));
+        }
+
+        RuntimeException blocked = assertThrows(RuntimeException.class, () ->
+                authService.login("admin@ximasak.com", "claveIncorrecta"));
+
+        assertTrue(blocked.getMessage().contains("Cuenta bloqueada temporalmente"));
+        verify(passwordEncoder, times(3)).matches("claveIncorrecta", "$2a$10$hashedPassword");
+    }
 }

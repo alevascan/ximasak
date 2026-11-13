@@ -79,6 +79,7 @@
 
     <!-- CONTENIDO DINÁMICO -->
     <div class="pro-content">
+      <h1 class="sr-only">Panel Administrativo SIRVS - XIMASAK EIRL</h1>
 
       <!-- ================= 1. VISTA RESULT (100% REAL CON LA BD) ================= -->
       <div *ngIf="moduloActivo === 'resultados'">
@@ -162,9 +163,9 @@
               <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'month'" (click)="aplicarFiltroPeriodo('month')">All month</button>
               <button class="filter-btn" [class.active-filter]="filtroPeriodo === 'year'" (click)="aplicarFiltroPeriodo('year')">All year</button>
               <div class="date-inputs">
-                <input type="date" [(ngModel)]="fechaInicioFiltro" (change)="filtrarVentasPorRango()">
+                <input type="date" aria-label="Fecha de inicio del periodo" [(ngModel)]="fechaInicioFiltro" (change)="filtrarVentasPorRango()">
                 <span>~</span>
-                <input type="date" [(ngModel)]="fechaFinFiltro" (change)="filtrarVentasPorRango()">
+                <input type="date" aria-label="Fecha de fin del periodo" [(ngModel)]="fechaFinFiltro" (change)="filtrarVentasPorRango()">
               </div>
             </div>
           </div>
@@ -172,7 +173,7 @@
           <div class="chart-and-ranking">
             <!-- Izquierda: Gráfico de Ventas Reales -->
             <div class="trend-column">
-              <h4>Store Sales Trend (Ventas en el periodo seleccionado)</h4>
+              <h2>Store Sales Trend (Ventas en el periodo seleccionado)</h2>
 
               <div *ngIf="ventasFiltradas.length === 0" class="empty-chart-box">
                 No se registraron ventas en este periodo (S/ 0.00).
@@ -195,7 +196,7 @@
 
             <!-- Derecha: Ranking / Historial de Ventas Reales -->
             <div class="ranking-column">
-              <h4>Ventas Realizadas en este Periodo ({{ ventasFiltradas.length }})</h4>
+              <h2>Ventas Realizadas en este Periodo ({{ ventasFiltradas.length }})</h2>
               <div *ngIf="ventasFiltradas.length === 0" class="empty-msg">
                 Sin ventas registradas. Cuando se realice una venta en la BD aparecerá aquí.
               </div>
@@ -466,7 +467,7 @@
                 <div *ngFor="let p of productosFiltradosPos" class="pos-product-item">
                   <div class="p-info">
                     <span class="p-name">{{ p.nombre }}</span>
-                    <span class="p-brand">{{ p.marca?.nombre || p.marca }} | Stock: {{ p.stock ?? p.stockActual ?? 10 }}</span>
+                    <span class="p-brand">{{ obtenerNombreMarca(p) }} | Stock: {{ p.stock ?? p.stockActual ?? 10 }}</span>
                   </div>
                   <div class="p-price-action">
                     <span class="p-price">S/ {{ obtenerPrecio(p) | number:'1.2-2' }}</span>

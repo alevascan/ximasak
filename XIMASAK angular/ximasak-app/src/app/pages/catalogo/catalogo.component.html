@@ -21,6 +21,7 @@
 <div class="buscador">
   <input
     type="text"
+    aria-label="Buscar productos"
     placeholder="Buscar productos (cases, memorias, routers...)"
     [ngModel]="textoBusqueda()"
     (ngModelChange)="textoBusqueda.set($event)"
@@ -30,7 +31,7 @@
 <div class="layout-catalogo">
   <!--FILTRO-->
   <aside class="sidebar-filtros">
-    <h4>Categorías</h4>
+    <h2>Categorías</h2>
     <div>
       <label *ngFor="let cat of catalogo.categorias()">
         <input
@@ -42,10 +43,11 @@
         {{ cat.charAt(0).toUpperCase() + cat.slice(1) }}
       </label>
     </div>
-    <h4 class="mt-20">Precio</h4>
+    <h2 class="mt-20">Precio</h2>
     <div class="filtro-precio">
       <input
         type="number"
+        aria-label="Precio mínimo"
         placeholder="Mínimo"
         min="0"
         [ngModel]="precioMin()"
@@ -53,6 +55,7 @@
       />
       <input
         type="number"
+        aria-label="Precio máximo"
         placeholder="Máximo"
         min="0"
         [ngModel]="precioMax()"
@@ -63,8 +66,8 @@
 
   <div class="contenido-productos">
     <div class="cabecera-productos">
-      <h2>Todos los Productos</h2>
-      <select [ngModel]="ordenSeleccionado()" (ngModelChange)="ordenSeleccionado.set($event)">
+      <h1>Todos los Productos</h1>
+      <select aria-label="Ordenar productos" [ngModel]="ordenSeleccionado()" (ngModelChange)="ordenSeleccionado.set($event)">
         <option value="relevancia">Ordenar por: Relevancia</option>
         <option value="precioAsc">Precio: Menor a Mayor</option>
         <option value="precioDesc">Precio: Mayor a Menor</option>
@@ -79,7 +82,7 @@
 
       <div class="card-producto" *ngFor="let producto of productosFiltrados()">
         <img [src]="producto.foto" [alt]="producto.nombre" class="img-producto" />
-        <h4>{{ producto.nombre }}</h4>
+        <h2>{{ producto.nombre }}</h2>
         <p class="precio">S/ {{ producto.precio.toFixed(2) }}</p>
         <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Stock: {{ producto.stock }}</p>
 
@@ -111,7 +114,7 @@
   <div class="modal-content" style="max-width: 900px;">
     <div class="modal-header" style="background-color: var(--azul-claro);">
       <h3>Nuevo Producto</h3>
-      <span class="close-modal" (click)="cerrarModalAgregar()">&times;</span>
+      <button type="button" class="close-modal" aria-label="Cerrar ventana" (click)="cerrarModalAgregar()">&times;</button>
     </div>
 
     <div class="modal-body" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
@@ -161,7 +164,7 @@
   <div class="modal-content" style="max-width: 600px;">
     <div class="modal-header" style="background-color: var(--azul-ximasak);">
       <h3>Administrar Productos</h3>
-      <span class="close-modal" (click)="cerrarModalAdministrar()">&times;</span>
+      <button type="button" class="close-modal" aria-label="Cerrar ventana" (click)="cerrarModalAdministrar()">&times;</button>
     </div>
     <div class="modal-body">
       <label class="mb-10">Buscar producto por nombre:</label>

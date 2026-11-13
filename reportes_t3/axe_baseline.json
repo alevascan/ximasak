@@ -1,0 +1,77 @@
+{
+  "/": {
+    "passes": 25,
+    "incomplete": 0,
+    "violations": []
+  },
+  "/catalogo": {
+    "passes": 29,
+    "incomplete": 0,
+    "violations": [
+      {
+        "id": "heading-order",
+        "impact": "moderate",
+        "help": "Heading levels should only increase by one",
+        "nodes": 1,
+        "targets": [
+          "h4:nth-child(1)"
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "help": "Select element must have an accessible name",
+        "nodes": 1,
+        "targets": [
+          "select"
+        ]
+      }
+    ]
+  },
+  "/reserva": {
+    "passes": 39,
+    "incomplete": 1,
+    "violations": []
+  },
+  "/clientes": {
+    "passes": 33,
+    "incomplete": 0,
+    "violations": []
+  },
+  "/dashboard": {
+    "passes": 20,
+    "incomplete": 1,
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "nodes": 11,
+        "targets": [
+          "nav > .active",
+          ".btn-logout-side",
+          ".metric-card:nth-child(1) > .metric-header > span:nth-child(1)"
+        ]
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "help": "Form elements must have labels",
+        "nodes": 2,
+        "targets": [
+          "input:nth-child(1)",
+          "input:nth-child(3)"
+        ]
+      },
+      {
+        "id": "page-has-heading-one",
+        "impact": "moderate",
+        "help": "Page should contain a level-one heading",
+        "nodes": 1,
+        "targets": [
+          "html"
+        ]
+      }
+    ]
+  }
+}

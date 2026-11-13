@@ -29,7 +29,7 @@
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="background-color: var(--azul-ximasak);">
             <h3>{{ modoRegistro ? 'Crear Cuenta' : 'Acceso al Sistema' }}</h3>
-            <span class="close-modal" (click)="cerrarModal()">&times;</span>
+            <button type="button" class="close-modal" aria-label="Cerrar ventana" (click)="cerrarModal()">&times;</button>
         </div>
         
         <div class="modal-body">
@@ -41,28 +41,28 @@
 
             <!-- Formulario de LOGIN -->
             <div *ngIf="!modoRegistro">
-                <label class="mb-10">Correo Electrónico</label>
-                <input type="email" [(ngModel)]="loginData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
+                <label for="loginCorreo" class="mb-10">Correo Electrónico</label>
+                <input id="loginCorreo" type="email" [(ngModel)]="loginData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
                 
-                <label class="mb-10 mt-10">Contraseña</label>
-                <input type="password" [(ngModel)]="loginData.password" class="input-full mb-10" placeholder="Contraseña">
+                <label for="loginPass" class="mb-10 mt-10">Contraseña</label>
+                <input id="loginPass" type="password" [(ngModel)]="loginData.password" class="input-full mb-10" placeholder="Contraseña">
                 
                 <button class="btn-principal btn-block mt-20" (click)="hacerLogin()">Ingresar</button>
             </div>
 
             <!-- Formulario de REGISTRO (Para clientes) -->
             <div *ngIf="modoRegistro">
-                <label class="mb-10">DNI</label>
-                <input type="text" [(ngModel)]="registroData.dni" class="input-full mb-10" placeholder="DNI (8 dígitos)" maxlength="8">
+                <label for="regDni" class="mb-10">DNI</label>
+                <input id="regDni" type="text" [(ngModel)]="registroData.dni" class="input-full mb-10" placeholder="DNI (8 dígitos)" maxlength="8">
                 
-                <label class="mb-10 mt-10">Nombres Completos</label>
-                <input type="text" [(ngModel)]="registroData.nombre" class="input-full mb-10" placeholder="Nombres">
+                <label for="regNombre" class="mb-10 mt-10">Nombres Completos</label>
+                <input id="regNombre" type="text" [(ngModel)]="registroData.nombre" class="input-full mb-10" placeholder="Nombres">
                 
-                <label class="mb-10 mt-10">Correo Electrónico</label>
-                <input type="email" [(ngModel)]="registroData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
+                <label for="regCorreo" class="mb-10 mt-10">Correo Electrónico</label>
+                <input id="regCorreo" type="email" [(ngModel)]="registroData.correo" class="input-full mb-10" placeholder="correo@ejemplo.com">
                 
-                <label class="mb-10 mt-10">Contraseña</label>
-                <input type="password" [(ngModel)]="registroData.password" class="input-full mb-10" placeholder="Contraseña">
+                <label for="regPass" class="mb-10 mt-10">Contraseña</label>
+                <input id="regPass" type="password" [(ngModel)]="registroData.password" class="input-full mb-10" placeholder="Contraseña">
                 
                 <button class="btn-principal btn-block mt-20" (click)="hacerRegistro()">Crear Cuenta</button>
             </div>

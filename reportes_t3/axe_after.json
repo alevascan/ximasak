@@ -1,0 +1,27 @@
+{
+  "/": {
+    "passes": 30,
+    "incomplete": 0,
+    "violations": []
+  },
+  "/catalogo": {
+    "passes": 35,
+    "incomplete": 0,
+    "violations": []
+  },
+  "/reserva": {
+    "passes": 39,
+    "incomplete": 1,
+    "violations": []
+  },
+  "/clientes": {
+    "passes": 33,
+    "incomplete": 0,
+    "violations": []
+  },
+  "/dashboard": {
+    "passes": 27,
+    "incomplete": 1,
+    "violations": []
+  }
+}

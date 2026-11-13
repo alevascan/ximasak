@@ -220,7 +220,7 @@ public class SirvsSeleniumTest {
         assertTrue(tiempoRespuestaMs <= 2000,
                 "RNF-01: El catálogo debe responder en un máximo de 2 segundos (actual: " + tiempoRespuestaMs + " ms)");
 
-        WebElement cabecera = driver.findElement(By.cssSelector(".cabecera-productos h2"));
+        WebElement cabecera = driver.findElement(By.cssSelector(".cabecera-productos h1"));
         assertEquals("Todos los Productos", cabecera.getText().trim());
 
         // Activar las casillas de categorías en el sidebar si alguna no está marcada
@@ -415,6 +415,13 @@ public class SirvsSeleniumTest {
 
         WebElement totalCobrar = driver.findElement(By.cssSelector(".tot-highlight"));
         assertTrue(totalCobrar.getText().contains("S/"), "El POS debe calcular el total a cobrar con IGV");
+
+        List<WebElement> marcasPos = driver.findElements(By.cssSelector(".pos-product-item .p-brand"));
+        assertFalse(marcasPos.isEmpty(), "El POS debe mostrar la marca de cada producto");
+        assertTrue(marcasPos.stream().anyMatch(m -> m.getText().contains("Kingston")),
+                "La marca estructurada {idMarca, nombre} debe mostrarse como 'Kingston'");
+        assertTrue(marcasPos.stream().noneMatch(m -> m.getText().contains("[object Object]")),
+                "Ninguna marca en el POS debe renderizarse como [object Object]");
         guardarCaptura("CP_FT_07_B_Terminal_POS.png");
 
         // 3. Navegar al módulo de Tickets / Reservas (HU-07 / HU-08)
@@ -460,6 +467,74 @@ public class SirvsSeleniumTest {
                 "El contador debe reflejar el cliente filtrado por DNI 87654321");
     }
 
+    @Test
+    @Order(9)
+    @DisplayName("CP-FT-09: Atención de ticket técnico a ATENDIDA y alerta de stock crítico (HU-08 / HU-09)")
+    void testCpFt09_AtencionTicketYControlStockCritico() {
+        driver.get(baseUrl + "/");
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript(
+                "localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin.sirvs');" +
+                "localStorage.setItem('rol', 'ADMIN');" +
+                "localStorage.setItem('idUsuario', '1');" +
+                "localStorage.setItem('nombreUsuario', 'Matias Admin');" +
+                "window.confirm = function() { return true; };" +
+                "window.alert = function() {};"
+        );
+
+        driver.get(baseUrl + "/dashboard");
+
+        // Verificar alerta real de stock crítico en la tarjeta operativa (Case Gamer stock 2 <= stockMinimo 3)
+        WebElement stockCriticoFooter = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".metric-card .metric-footer"))
+        );
+        WebElement alertaStockBajo = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".metric-card .op-sub"))
+        );
+        assertTrue(alertaStockBajo.getText().contains("1 prod. con stock bajo")
+                        || stockCriticoFooter.getText().contains("Con stock crítico: 1"),
+                "El dashboard debe alertar el producto con stock crítico real");
+
+        // Reemplazar confirm/alert antes de hacer click en Atender
+        js.executeScript("window.confirm = function() { return true; }; window.alert = function() {};");
+
+        WebElement btnTickets = driver.findElement(By.xpath("//nav[contains(@class,'pro-menu')]//button[contains(., 'Tickets')]"));
+        js.executeScript("arguments[0].click();", btnTickets);
+
+        WebElement btnAtender = wait.until(
+                ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-action-atender"))
+        );
+        js.executeScript("arguments[0].click();", btnAtender);
+
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.cssSelector(".crud-card table tbody tr:first-child"), "ATENDIDA"));
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.cssSelector(".crud-card table tbody tr:first-child"), "Notificado"));
+        guardarCaptura("CP_FT_09_Ticket_Atendido_Stock.png");
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("CP-FT-10: Restablecimiento de contraseña mediante token válido (HU-01)")
+    void testCpFt10_RestablecerPasswordConToken() {
+        driver.get(baseUrl + "/resetear-password?token=token-valido-sirvs-2026");
+
+        WebElement inputNueva = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nuevaPass")));
+        WebElement inputConf = driver.findElement(By.id("confPass"));
+        inputNueva.sendKeys("NuevaClave2026");
+        inputConf.sendKeys("NuevaClave2026");
+
+        WebElement btnGuardar = driver.findElement(By.cssSelector("button.btn-submit"));
+        btnGuardar.click();
+
+        WebElement alertaExito = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".alert.alert-success"))
+        );
+        assertTrue(alertaExito.getText().contains("actualizada con éxito"),
+                "Debe confirmar la actualización de contraseña con token válido");
+        guardarCaptura("CP_FT_10_Resetear_Password.png");
+    }
+
     private static void guardarCaptura(String nombreArchivo) {
         try {
             Path carpetaCapturas = Paths.get("evidencias_selenium").toAbsolutePath().normalize();
@@ -488,7 +563,7 @@ public class SirvsSeleniumTest {
         String hoy = LocalDate.now().toString();
 
         String jsonProductos = "[" +
-                "{\"idProducto\":1,\"nombre\":\"Memoria RAM 16GB DDR4\",\"marca\":\"Kingston\",\"categoria\":\"memorias\",\"precioUnitario\":118.00,\"precio\":118.00,\"stock\":12,\"stockMinimo\":3,\"estado\":true,\"imagen\":\"assets/fotos/ram.jpeg\"}," +
+                "{\"idProducto\":1,\"nombre\":\"Memoria RAM 16GB DDR4\",\"marca\":{\"idMarca\":1,\"nombre\":\"Kingston\"},\"categoria\":\"memorias\",\"precioUnitario\":118.00,\"precio\":118.00,\"stock\":12,\"stockMinimo\":3,\"estado\":true,\"imagen\":\"assets/fotos/ram.jpeg\"}," +
                 "{\"idProducto\":2,\"nombre\":\"Router Wi-Fi Dual Band AC1200\",\"marca\":\"TP-Link\",\"categoria\":\"redes\",\"precioUnitario\":180.00,\"precio\":180.00,\"stock\":10,\"stockMinimo\":3,\"estado\":true,\"imagen\":\"assets/fotos/router.jpeg\"}," +
                 "{\"idProducto\":3,\"nombre\":\"Case Gamer con Panel RGB\",\"marca\":\"Halion\",\"categoria\":\"cases\",\"precioUnitario\":250.00,\"precio\":250.00,\"stock\":2,\"stockMinimo\":3,\"estado\":true,\"imagen\":\"assets/fotos/case.jpeg\"}," +
                 "{\"idProducto\":4,\"nombre\":\"Mouse Óptico Inalámbrico\",\"marca\":\"Logitech\",\"categoria\":\"perifericos\",\"precioUnitario\":45.00,\"precio\":45.00,\"stock\":15,\"stockMinimo\":3,\"estado\":true,\"imagen\":\"assets/fotos/mouse.jpeg\"}," +
@@ -532,7 +607,20 @@ public class SirvsSeleniumTest {
         mockApiServer.createContext("/api/clientes/buscar", ex -> responderJson(ex, jsonClienteBuscado));
         mockApiServer.createContext("/api/clientes", ex -> responderJson(ex, jsonClientes));
         mockApiServer.createContext("/api/ventas", ex -> responderJson(ex, jsonVentas));
-        mockApiServer.createContext("/api/reservas", ex -> responderJson(ex, jsonReservas));
+        final java.util.concurrent.atomic.AtomicBoolean ticket1Atendido = new java.util.concurrent.atomic.AtomicBoolean(false);
+        mockApiServer.createContext("/api/reservas", ex -> {
+            String path = ex.getRequestURI().getPath();
+            if ("PATCH".equalsIgnoreCase(ex.getRequestMethod()) && path.contains("/estado")) {
+                ticket1Atendido.set(true);
+                responderJson(ex, "{\"idReserva\":1,\"estado\":\"ATENDIDA\",\"mensaje\":\"Ticket actualizado\"}");
+            } else {
+                String body = ticket1Atendido.get()
+                        ? jsonReservas.replaceFirst("\"estado\":\"Pendiente\"", "\"estado\":\"ATENDIDA\"")
+                        : jsonReservas;
+                responderJson(ex, body);
+            }
+        });
+        mockApiServer.createContext("/api/auth/resetear-password", ex -> responderJson(ex, "{\"mensaje\":\"Contraseña actualizada correctamente\"}"));
         mockApiServer.createContext("/api/usuarios", ex -> responderJson(ex, jsonUsuarios));
         mockApiServer.createContext("/api/roles", ex -> responderJson(ex, jsonRoles));
         mockApiServer.createContext("/api/marcas", ex -> responderJson(ex, jsonMarcas));
